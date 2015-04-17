@@ -3,6 +3,7 @@
 # ===========================================================================
 
 from time import sleep, time
+import datetime
 import Adafruit_MCP230xx as Ada
 import matrix_kp
 import RPi.GPIO as GPIO
@@ -10,6 +11,7 @@ import MFRC522
 import signal
 from Adafruit_CharLCD  import Adafruit_CharLCD
 from Adafruit_7Segment import SevenSegment
+import gspread
 
 bus = 1         # Change the bus number to 0 if running on a revision 1 Raspberry Pi.
 address = 0x20  # I2C address of the MCP230xx chip.
@@ -114,6 +116,25 @@ def readNfc():
             reading=False
             return backData[0]
 
+def WriteToTrix(num_players, players, total_time, score_A, score_B):
+        gc = gspread.login('futbolinmx@gmail.com', 'futbolingoogle')
+        now = datetime.datetime.now()
+        sheet = gc.open('Futbolin').sheet1
+        row_number = len(sheet.col_values(1)) + 1
+        sheet.update_acell('B'+str(row_number), now)
+        sheet.update_acell('C'+str(row_number), num_players)
+
+        if num_players == 2:
+                sheet.update_acell('D'+str(row_number), players[0])
+                sheet.update_acell('E'+str(row_number), players[1])
+        else:
+                sheet.update_acell('D'+str(row_number), players[0])
+                sheet.update_acell('E'+str(row_number), players[1])
+                sheet.update_acell('F'+str(row_number), players[2])
+                sheet.update_acell('G'+str(row_number), players[3])
+
+        sheet.update_acell('T'+str(row_number), total_time)
+
 def jugar():
     global score_A
     global score_B
@@ -217,6 +238,7 @@ def jugar():
 
         sleep(3)
 
+        WriteToTrix(d1, players, game_time, score_A, score_B)
         lcd.clear()
         lcd.message("Continue?\n*=yes #=no")
         sym = symbol()
@@ -232,6 +254,9 @@ def jugar():
             #GPIO.cleanup()
 
 
+
+
+# WriteToTrix()
 
 try:
     while True:
