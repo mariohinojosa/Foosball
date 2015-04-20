@@ -121,6 +121,7 @@ def WriteToTrix(num_players, players, total_time, score_A, score_B):
         now = datetime.datetime.now()
         sheet = gc.open('Futbolin').sheet1
         row_number = len(sheet.col_values(1)) + 1
+        sheet.update_acell('A'+str(row_number), rown_number - 1)
         sheet.update_acell('B'+str(row_number), now)
         sheet.update_acell('C'+str(row_number), num_players)
 
