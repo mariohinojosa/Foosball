@@ -116,25 +116,87 @@ def readNfc():
             reading=False
             return backData[0]
 
+def char_range(c1, c2):
+        """Generates chars from 'c1' to 'c2', inclusive"""
+        for c in xrange(ord(c1), ord(c2) + 1):
+                yield chr(c)
+
+def generate_scores(score_A, score_B):
+        """Used to generate all the scores from the game in the format 00 01 11 21, etc"""
+        aux_A = 0
+        aux_B = 0
+        result = []
+        for x in range(len(score_A) + len(score_B) - 1):
+                res_A = '0' if not score_A else score_A[aux_A]
+                res_B = '0' if not score_B else score_B[aux_B]
+                res = res_A + res_B
+                if(score_A and aux_A < (len(score_A) - 1)):
+                        aux_A += 1
+                if(score_B and aux_B < (len(score_B) - 1)):
+                        aux_B += 1
+                result.push(res)
+        return result
+
 def WriteToTrix(num_players, players, total_time, score_A, score_B):
         gc = gspread.login('futbolinmx@gmail.com', 'futbolingoogle')
         now = datetime.datetime.now()
         sheet = gc.open('Futbolin').sheet1
-        row_number = len(sheet.col_values(1)) + 1
-        sheet.update_acell('A'+str(row_number), rown_number - 1)
-        sheet.update_acell('B'+str(row_number), now)
-        sheet.update_acell('C'+str(row_number), num_players)
+        row_number = str(len(sheet.col_values(1)) + 1)
+        sheet.update_acell('A'+row_number, rown_number - 1)
+        sheet.update_acell('B'+row_number, now)
+        sheet.update_acell('C'+row_number, num_players)
 
+        # Player ids
         if num_players == 2:
-                sheet.update_acell('D'+str(row_number), players[0])
-                sheet.update_acell('E'+str(row_number), players[1])
+                sheet.update_acell('D'+row_number, players[0])
+                sheet.update_acell('E'+row_number, players[1])
         else:
-                sheet.update_acell('D'+str(row_number), players[0])
-                sheet.update_acell('E'+str(row_number), players[1])
-                sheet.update_acell('F'+str(row_number), players[2])
-                sheet.update_acell('G'+str(row_number), players[3])
+                sheet.update_acell('D'+row_number, players[0])
+                sheet.update_acell('E'+row_number, players[1])
+                sheet.update_acell('F'+row_number, players[2])
+                sheet.update_acell('G'+row_number, players[3])
 
-        sheet.update_acell('T'+str(row_number), total_time)
+
+        # Team red score times
+        if(score_A):
+            aux_A = 0
+            for c in char_range('H', 'L'):
+                    if(len(score_A) > aux_A):
+                            sheet.update_acell(c + row_number, score_A[aux_A])
+                    aux_A += 1
+
+        # Team yellow score times
+        if(score_B):
+        aux_B = 0
+        for c in char_range('M', 'Q'):
+                if(len(score_B) > aux_B):
+                        sheet.update_acell(c + row_number, score_B[aux_B])
+                aux_B += 1
+
+        # Total goals + time
+        sheet.update_acell('R'+row_number, score_A[len(score_A)-1] if score_A else '0')
+        sheet.update_acell('S'+row_number, score_B[len(score_B)-1] if score_B else '0')
+        sheet.update_acell('T'+row_number, total_time)
+
+        # Score list in format 00, 01, 02, 12, 22, etc
+        scores = generate_scores(score_A, score_B)
+        aux_scores = 0
+        for c in char_range('U', 'Z'):
+                if(len(scores) > aux_scores):
+                        sheet.update_acell(c + row_number, scores[aux_scores])
+                aux_scores += 1
+
+        for c in char_range('A', 'C'):
+                if(len(scores) > aux_scores):
+                        sheet.update_acell('A'+c + row_number, scores[aux_scores])
+                aux_scores += 1
+
+        total_A = len(score_A) if score_A else 0
+        total_B = len(score_B) if score_B else 0
+
+        # Total number of goals, used for analysis purposes only
+        sheet.update_acell('AD'+row_number, str(total_A + total_B))
+
 
 def jugar():
     global score_A
