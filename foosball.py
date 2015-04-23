@@ -138,14 +138,22 @@ def generate_scores(score_A, score_B):
         return result
 
 def WriteToTrix(num_players, players, total_time, score_A, score_B):
+        print 'Initiate write to trix'
         gc = gspread.login('futbolinmx@gmail.com', 'futbolingoogle')
+        print 'Post login'
         now = datetime.datetime.now()
         sheet = gc.open('Futbolin').sheet1
-        row_number = str(len(sheet.col_values(1)) + 1)
-        sheet.update_acell('A'+row_number, rown_number - 1)
-        sheet.update_acell('B'+row_number, now)
-        sheet.update_acell('C'+row_number, num_players)
+        print 'Post open sheet'
+        row_number_i = len(sheet.col_values(1)) + 1
+        row_number = str(row_number_i)
+        print 'Rownumber', row_number
+        print 'Updating A, B, C'
+        sheet.update_acell('A5', 'prueba')
+        sheet.update_acell('A'+row_number, row_number_i - 1)
+        sheet.update_acell('B'+row_number, str(now))
+        sheet.update_acell('C'+row_number, str(num_players))
 
+        print 'Get num players writeToTrix'
         # Player ids
         if num_players == 2:
                 sheet.update_acell('D'+row_number, players[0])
@@ -157,25 +165,34 @@ def WriteToTrix(num_players, players, total_time, score_A, score_B):
                 sheet.update_acell('G'+row_number, players[3])
 
 
+        print 'Calculating team red score times'
         # Team red score times
         if(score_A):
             aux_A = 0
             for c in char_range('H', 'L'):
+                    print 'Updating cell', c
+                    print score_A
+                    print len(score_A), ', ', aux_A
                     if(len(score_A) > aux_A):
-                            sheet.update_acell(c + row_number, score_A[aux_A])
+                            sheet.update_acell(c + row_number,
+                                            str(score_A[aux_A]))
                     aux_A += 1
 
+        print 'Calculating team yellow score times'
         # Team yellow score times
         if(score_B):
-        aux_B = 0
-        for c in char_range('M', 'Q'):
-                if(len(score_B) > aux_B):
-                        sheet.update_acell(c + row_number, score_B[aux_B])
-                aux_B += 1
+                aux_B = 0
+                for c in char_range('M', 'Q'):
+                        print 'Updating cell', c
+                        if(len(score_B) > aux_B):
+                                sheet.update_acell(c + row_number,
+                                                str(score_B[aux_B]))
+                        aux_B += 1
 
+        print ' Updating R, S, T'
         # Total goals + time
-        sheet.update_acell('R'+row_number, score_A[len(score_A)-1] if score_A else '0')
-        sheet.update_acell('S'+row_number, score_B[len(score_B)-1] if score_B else '0')
+        sheet.update_acell('R'+row_number, len(score_A) if score_A else '0')
+        sheet.update_acell('S'+row_number, len(score_B) if score_B else '0')
         sheet.update_acell('T'+row_number, total_time)
 
         # Score list in format 00, 01, 02, 12, 22, etc
@@ -301,7 +318,7 @@ def jugar():
 
         sleep(3)
 
-        WriteToTrix(d1, players, game_time, score_A, score_B)
+        WriteToTrix(d1, players, game_time, score_time_A, score_time_B)
         lcd.clear()
         lcd.message("Continue?\n*=yes #=no")
         sym = symbol()
