@@ -11,7 +11,6 @@ import RPi.GPIO as GPIO
 import datetime
 import gspread
 import matrix_kp
-import pdb
 import signal
 import sys
 
@@ -135,22 +134,6 @@ def char_range(c1, c2):
         for c in xrange(ord(c1), ord(c2) + 1):
                 yield chr(c)
 
-def generate_scores(score_A, score_B):
-        """Used to generate all the scores from the game in the format 00 01 11 21, etc"""
-        aux_A = 0
-        aux_B = 0
-        result = []
-        for x in range(len(score_A) + len(score_B) - 1):
-                # res_A = '0' if not score_A else score_A[aux_A]
-                # res_B = '0' if not score_B else score_B[aux_B]
-                res = str(aux_A) + str(aux_B)
-                if(score_A and aux_A < (len(score_A) - 1)):
-                        aux_A += 1
-                if(score_B and aux_B < (len(score_B) - 1)):
-                        aux_B += 1
-                result.append(res)
-        return result
-
 def WriteToTrix(num_players, players, total_time, score_A, score_B):
         global scores
 
@@ -191,7 +174,7 @@ def WriteToTrix(num_players, players, total_time, score_A, score_B):
                     print len(score_A), ', ', aux_A
                     if(len(score_A) > aux_A):
                             sheet.update_acell(c + row_number,
-                                            str(score_A[aux_A]))
+                                            str(int(score_A[aux_A])))
                     aux_A += 1
 
         print 'Calculating team yellow score times'
@@ -202,18 +185,16 @@ def WriteToTrix(num_players, players, total_time, score_A, score_B):
                         print 'Updating cell', c
                         if(len(score_B) > aux_B):
                                 sheet.update_acell(c + row_number,
-                                                str(score_B[aux_B]))
+                                                str(int(score_B[aux_B])))
                         aux_B += 1
 
         print ' Updating R, S, T'
         # Total goals + time
         sheet.update_acell('R'+row_number, len(score_A) if score_A else '0')
         sheet.update_acell('S'+row_number, len(score_B) if score_B else '0')
-        sheet.update_acell('T'+row_number, total_time)
+        sheet.update_acell('T'+row_number, int(total_time))
 
         # Score list in format 00, 01, 02, 12, 22, etc
-        # pdb.set_trace()
-        # scores = generate_scores(score_time_A, score_time_B)
         print 'after generate scores'
         aux_scores = 0
         for c in char_range('U', 'Z'):
