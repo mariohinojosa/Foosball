@@ -13,6 +13,7 @@ import gspread
 import matrix_kp
 import pdb
 import signal
+import sys
 
 bus = 1         # Change the bus number to 0 if running on a revision 1 Raspberry Pi.
 address = 0x20  # I2C address of the MCP230xx chip.
@@ -38,6 +39,7 @@ score_A = 0
 score_B = 0
 score_time_A = []
 score_time_B = []
+scores = []
 max_score = 5
 start_time = 0
 
@@ -58,6 +60,8 @@ def clear_seven_segment():
 
 def my_callback_A(chanel):
     global score_A
+    global score_B
+    global scores
     global score_time_A
     global segment
     global lcd
@@ -66,13 +70,17 @@ def my_callback_A(chanel):
     global start_time
     if(score_A < max_score):
             score_A += 1
+            print score_A, ', ', score_B
             score_time_A.append(time() - start_time)
+            scores.append(str(score_A) + 'v' +  str(score_B))
             last_action = "A"
             segment.writeDigit(0,score_A)
 
 def my_callback_B(chanel):
     global score_B
+    global score_A
     global score_time_B
+    global scores
     global segment
     global lcd
     global last_action
@@ -80,7 +88,9 @@ def my_callback_B(chanel):
     global start_time
     if(score_B < max_score):
             score_B += 1
+            print score_A, ', ', score_B
             score_time_B.append(time() - start_time)
+            scores.append(str(score_A) + 'v' +  str(score_B))
             last_action = "B"
             segment.writeDigit(3,score_B)
 
@@ -131,17 +141,19 @@ def generate_scores(score_A, score_B):
         aux_B = 0
         result = []
         for x in range(len(score_A) + len(score_B) - 1):
-                res_A = '0' if not score_A else score_A[aux_A]
-                res_B = '0' if not score_B else score_B[aux_B]
-                res = res_A + res_B
+                # res_A = '0' if not score_A else score_A[aux_A]
+                # res_B = '0' if not score_B else score_B[aux_B]
+                res = str(aux_A) + str(aux_B)
                 if(score_A and aux_A < (len(score_A) - 1)):
                         aux_A += 1
                 if(score_B and aux_B < (len(score_B) - 1)):
                         aux_B += 1
-                result.push(res)
+                result.append(res)
         return result
 
 def WriteToTrix(num_players, players, total_time, score_A, score_B):
+        global scores
+
         print 'Initiate write to trix'
         gc = gspread.login('futbolinmx@gmail.com', 'futbolingoogle')
         print 'Post login'
@@ -200,16 +212,20 @@ def WriteToTrix(num_players, players, total_time, score_A, score_B):
         sheet.update_acell('T'+row_number, total_time)
 
         # Score list in format 00, 01, 02, 12, 22, etc
-        scores = generate_scores(score_A, score_B)
+        # pdb.set_trace()
+        # scores = generate_scores(score_time_A, score_time_B)
+        print 'after generate scores'
         aux_scores = 0
         for c in char_range('U', 'Z'):
                 if(len(scores) > aux_scores):
                         sheet.update_acell(c + row_number, scores[aux_scores])
+                        print scores[aux_scores]
                 aux_scores += 1
 
         for c in char_range('A', 'C'):
                 if(len(scores) > aux_scores):
                         sheet.update_acell('A'+c + row_number, scores[aux_scores])
+                        print scores[aux_scores]
                 aux_scores += 1
 
         total_A = len(score_A) if score_A else 0
@@ -236,7 +252,7 @@ def jugar():
     print "Look at LCD for instructions"
 
     lcd.clear()
-    lcd.message("How many players?\npress 1 or 2")
+    lcd.message("How many players?\npress 2 or 4")
 
     d1 = digit()
     lcd.clear()
@@ -270,6 +286,7 @@ def jugar():
 
         del score_time_A[:]
         del score_time_B[:]
+        del scores[:]
 
         last_action = "C"
 
@@ -283,7 +300,7 @@ def jugar():
         sleep(1)
 
         secs = 0
-        max_score = 4
+        max_score = 5
         start_time = time()
 
         while ((score_A < max_score) and (score_B < max_score)):
@@ -356,4 +373,5 @@ except:
     lcd.clear()
     clear_seven_segment()
     GPIO.cleanup()
-
+    e = sys.exc_info()
+    print e
