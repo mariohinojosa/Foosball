@@ -2,16 +2,17 @@
 # Basic integration of modules for football project
 # ===========================================================================
 
-from time import sleep, time
-import datetime
-import Adafruit_MCP230xx as Ada
-import matrix_kp
-import RPi.GPIO as GPIO
-import MFRC522
-import signal
-from Adafruit_CharLCD  import Adafruit_CharLCD
 from Adafruit_7Segment import SevenSegment
+from Adafruit_CharLCD  import Adafruit_CharLCD
+from time import sleep, time
+import Adafruit_MCP230xx as Ada
+import MFRC522
+import RPi.GPIO as GPIO
+import datetime
 import gspread
+import matrix_kp
+import pdb
+import signal
 
 bus = 1         # Change the bus number to 0 if running on a revision 1 Raspberry Pi.
 address = 0x20  # I2C address of the MCP230xx chip.
@@ -38,6 +39,7 @@ score_B = 0
 score_time_A = []
 score_time_B = []
 max_score = 5
+start_time = 0
 
 last_action = "C"
 
@@ -61,9 +63,10 @@ def my_callback_A(chanel):
     global lcd
     global last_action
     global max_score
+    global start_time
     if(score_A < max_score):
             score_A += 1
-            score_time_A.append(time())
+            score_time_A.append(time() - start_time)
             last_action = "A"
             segment.writeDigit(0,score_A)
 
@@ -74,9 +77,10 @@ def my_callback_B(chanel):
     global lcd
     global last_action
     global max_score
+    global start_time
     if(score_B < max_score):
             score_B += 1
-            score_time_B.append(time())
+            score_time_B.append(time() - start_time)
             last_action = "B"
             segment.writeDigit(3,score_B)
 
@@ -223,6 +227,7 @@ def jugar():
     global secs
     global last_action
     global interrupt
+    global start_time
 
     # List of players
     # First two players are from team A (yellow)
@@ -279,7 +284,7 @@ def jugar():
 
         secs = 0
         max_score = 4
-        start = time()
+        start_time = time()
 
         while ((score_A < max_score) and (score_B < max_score)):
             # print("before interrupt"+str(interrupt))
@@ -305,7 +310,7 @@ def jugar():
             lcd.message("TIME PLAYED:\n%d seconds" %secs)
             sleep(1)
         stop = time()
-        game_time = stop - start
+        game_time = stop - start_time
 
         if score_A > score_B:
             lcd.clear()
