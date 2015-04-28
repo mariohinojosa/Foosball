@@ -34,7 +34,7 @@ GPIO.setup(11,GPIO.IN)
 #GPIO.setup(12,GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(12,GPIO.IN)
 GPIO.setup(13,GPIO.IN)
-GPIO.setup(16,GPIO.OUT)
+#GPIO.setup(16,GPIO.OUT)
 
 score_A = 0
 score_B = 0
