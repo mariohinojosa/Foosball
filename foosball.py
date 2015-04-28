@@ -32,8 +32,10 @@ lcd = Adafruit_CharLCD(pin_rs=1, pin_e=2, pins_db=[3,4,5,6], GPIO=mcp)
 # Prepare pins 11 & 13 as input to read pulse from infrared modules
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(11,GPIO.IN)
-GPIO.setup(12,GPIO.IN, pull_up_down=GPIO.PUD_UP)
+#GPIO.setup(12,GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(12,GPIO.IN)
 GPIO.setup(13,GPIO.IN)
+GPIO.setup(16,GPIO.OUT)
 
 score_A = 0
 score_B = 0
