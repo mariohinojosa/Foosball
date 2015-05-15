@@ -34,7 +34,9 @@ GPIO.setup(11,GPIO.IN)
 #GPIO.setup(12,GPIO.IN, pull_up_down=GPIO.PUD_UP)
 GPIO.setup(12,GPIO.IN)
 GPIO.setup(13,GPIO.IN)
-#GPIO.setup(16,GPIO.OUT)
+# signal for NPN emitter, initialized as LOW
+GPIO.setup(16,GPIO.OUT)
+GPIO.output(16,0)
 
 score_A = 0
 score_B = 0
@@ -227,6 +229,7 @@ def jugar():
     global last_action
     global interrupt
     global start_time
+    GPIO.output(16,1) #turns on signal for NPN emitter allowing IR led to switch on
 
     # List of players
     # First two players are from team A (yellow)
@@ -336,6 +339,7 @@ def jugar():
             lcd.clear()
             lcd.message("Ok, bye bye")
             clear_seven_segment()
+            GPIO.output(16,0)
             #GPIO.cleanup()
 
 
