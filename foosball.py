@@ -10,6 +10,8 @@ import MFRC522
 import RPi.GPIO as GPIO
 import datetime
 import gspread
+import json
+from oauth2client.client import SignedJwtAssertionCredentials
 import matrix_kp
 import signal
 import sys
@@ -120,6 +122,12 @@ def symbol():
         r = kp.getKey()
     return r
 
+def letter():
+    r = None
+    while r == None or r not in ['A','B', 'C', 'D']:
+        r = kp.getKey()
+    return r
+
 def readNfc():
     reading = True
     while reading:
@@ -142,7 +150,12 @@ def WriteToTrix(num_players, players, total_time, score_A, score_B):
         global scores
 
         print 'Initiate write to trix'
-        gc = gspread.login('futbolinmx@gmail.com', 'futbolingoogle')
+        json_key = json.load(open('Futbolin.json'))
+        scope = ['https://spreadsheets.google.com/feeds']
+        credentials = SignedJwtAssertionCredentials(json_key['client_email'],
+                        json_key['private_key'], scope)
+
+        gc = gspread.authorize(credentials)
         print 'Post login'
         now = datetime.datetime.now()
         sheet = gc.open('Futbolin').sheet1
@@ -229,6 +242,7 @@ def jugar():
     global last_action
     global interrupt
     global start_time
+    global scores
     GPIO.output(16,1) #turns on signal for NPN emitter allowing IR led to switch on
 
     # List of players
@@ -293,20 +307,31 @@ def jugar():
             # print("before interrupt"+str(interrupt))
             if(interrupt):
                 lcd.clear()
-                lcd.message("Interrupt")
+                lcd.message("A - delete goal\nB - exit game")
                 sleep(2)
-                if(last_action == "A"):
-                    score_A -= 1
-                    score_time_A.pop()
-                    segment.writeDigit(0,score_A)
-                if(last_action == "B"):
-                    score_B -= 1
-                    score_time_B.pop()
-                    segment.writeDigit(3,score_B)
-                if(last_action == "C"):
-                    lcd.clear()
-                    lcd.message("No goals yet")
-                    sleep(2)
+                ch = letter()
+                if(ch == "A"):
+                        if(last_action == 'A'):
+                            score_A -= 1
+                            score_time_A.pop()
+                            scores.pop()
+                            segment.writeDigit(0,score_A)
+                        if(last_action == "B"):
+                            score_B -= 1
+                            score_time_B.pop()
+                            scores.pop()
+                            segment.writeDigit(3,score_B)
+                        if(last_action == "C"):
+                            lcd.clear()
+                            lcd.message("No goals yet")
+                            sleep(2)
+                else:
+                        lcd.clear()
+                        lcd.message("Ok, bye bye")
+                        sleep(2)
+                        clear_seven_segment()
+                        GPIO.output(16,0)
+                        return
                 interrupt = False
             secs += 1
             lcd.clear()
@@ -341,11 +366,6 @@ def jugar():
             clear_seven_segment()
             GPIO.output(16,0)
             #GPIO.cleanup()
-
-
-
-
-# WriteToTrix()
 
 try:
     while True:
