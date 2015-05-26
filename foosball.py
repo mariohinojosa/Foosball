@@ -37,8 +37,8 @@ GPIO.setup(11,GPIO.IN)
 GPIO.setup(12,GPIO.IN)
 GPIO.setup(13,GPIO.IN)
 # signal for NPN emitter, initialized as LOW
-GPIO.setup(16,GPIO.OUT)
-GPIO.output(16,0)
+GPIO.setup(15,GPIO.OUT)
+GPIO.output(15,0)
 
 score_A = 0
 score_B = 0
@@ -243,7 +243,7 @@ def jugar():
     global interrupt
     global start_time
     global scores
-    GPIO.output(16,1) #turns on signal for NPN emitter allowing IR led to switch on
+    GPIO.output(15,1) #turns on signal for NPN emitter allowing IR led to switch on
 
     # List of players
     # First two players are from team A (yellow)
@@ -330,7 +330,7 @@ def jugar():
                         lcd.message("Ok, bye bye")
                         sleep(2)
                         clear_seven_segment()
-                        GPIO.output(16,0)
+                        GPIO.output(15,0)
                         return
                 interrupt = False
             secs += 1
@@ -364,7 +364,7 @@ def jugar():
             lcd.clear()
             lcd.message("Ok, bye bye")
             clear_seven_segment()
-            GPIO.output(16,0)
+            GPIO.output(15,0)
             #GPIO.cleanup()
 
 try:
