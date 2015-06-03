@@ -1,18 +1,18 @@
 # ===========================================================================
-# Basic integration of modules for football project
-# ===========================================================================
 
 from Adafruit_7Segment import SevenSegment
 from Adafruit_CharLCD  import Adafruit_CharLCD
 from time import sleep, time
 import Adafruit_MCP230xx as Ada
 import MFRC522
+# Basic integration of modules for football project
 import RPi.GPIO as GPIO
 import datetime
 import gspread
 import json
 from oauth2client.client import SignedJwtAssertionCredentials
 import matrix_kp
+# ===========================================================================
 import signal
 import sys
 
@@ -150,7 +150,7 @@ def WriteToTrix(num_players, players, total_time, score_A, score_B):
         global scores
 
         print 'Initiate write to trix'
-        json_key = json.load(open('Futbolin.json'))
+        json_key = json.load(open('/home/pi/Documents/Foosballgit/Futbolin.json'))
         scope = ['https://spreadsheets.google.com/feeds']
         credentials = SignedJwtAssertionCredentials(json_key['client_email'],
                         json_key['private_key'], scope)
@@ -164,7 +164,6 @@ def WriteToTrix(num_players, players, total_time, score_A, score_B):
         row_number = str(row_number_i)
         print 'Rownumber', row_number
         print 'Updating A, B, C'
-        sheet.update_acell('A5', 'prueba')
         sheet.update_acell('A'+row_number, row_number_i - 1)
         sheet.update_acell('B'+row_number, str(now))
         sheet.update_acell('C'+row_number, str(num_players))
