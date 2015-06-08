@@ -1,5 +1,3 @@
-# ===========================================================================
-
 from Adafruit_7Segment import SevenSegment
 from Adafruit_CharLCD  import Adafruit_CharLCD
 from time import sleep, time
@@ -12,7 +10,7 @@ import gspread
 import json
 from oauth2client.client import SignedJwtAssertionCredentials
 import matrix_kp
-# ===========================================================================
+import threading
 import signal
 import sys
 
@@ -40,16 +38,20 @@ GPIO.setup(13,GPIO.IN)
 GPIO.setup(15,GPIO.OUT)
 GPIO.output(15,0)
 
+# Saves the score for each team
 score_A = 0
 score_B = 0
+# Saves the timestamp of each score
 score_time_A = []
 score_time_B = []
+# Saves the total score ie 0-0, 1-0, 1-1, etc
 scores = []
 max_score = 5
 start_time = 0
 
 last_action = "C"
 
+# Flag to handle continuing the game or interrupting it
 interrupt = False
 
 def is_id_in_list(list, id):
@@ -63,6 +65,7 @@ def clear_seven_segment():
     segment.writeDigitRaw(3,0x00)
     segment.writeDigitRaw(4,0x00)
 
+# Callback when first IR sensor is activated
 def my_callback_A(chanel):
     global score_A
     global score_B
@@ -81,6 +84,7 @@ def my_callback_A(chanel):
             last_action = "A"
             segment.writeDigit(0,score_A)
 
+# Callback when second IR sensor is activated
 def my_callback_B(chanel):
     global score_B
     global score_A
@@ -99,6 +103,7 @@ def my_callback_B(chanel):
             last_action = "B"
             segment.writeDigit(3,score_B)
 
+# Callback for interrupt button
 def callback_interrupt(chanel):
         global interrupt
         interrupt = True
@@ -253,10 +258,18 @@ def jugar():
     lcd.clear()
     lcd.message("How many players?\npress 2 or 4")
 
-    d1 = digit()
-    lcd.clear()
-    lcd.message("You pressed %d" % d1)
-    sleep(1)
+    reject_num_players = true
+    while(reject_num_players):
+        d1 = digit()
+        lcd.clear()
+        lcd.message("You pressed %d" % d1)
+        if(d1 == 2 or d1 == 4):
+                reject_num_players = false
+        else:
+                sleep(1)
+                lcd.clear()
+                lcd.message("Please select 2 or 4")
+        sleep(1)
 
     i = 0
     while(i < d1):
@@ -324,14 +337,19 @@ def jugar():
                             lcd.clear()
                             lcd.message("No goals yet")
                             sleep(2)
-                else:
+                        interrupt = False
+                elif(ch == "B"):
                         lcd.clear()
                         lcd.message("Ok, bye bye")
                         sleep(2)
                         clear_seven_segment()
                         GPIO.output(15,0)
+                        interrupt = False
                         return
-                interrupt = False
+                else:
+                        lcd.clear()
+                        lcd.message("Select A or B")
+                        sleep(1)
             secs += 1
             lcd.clear()
             lcd.message("TIME PLAYED:\n%d seconds" %secs)
@@ -350,7 +368,10 @@ def jugar():
 
         sleep(3)
 
-        WriteToTrix(d1, players, game_time, score_time_A, score_time_B)
+        # Call WriteToTrix in a spearate Thread, beware to not turn off the Pi after finishing a game
+        t1 = threading.Thread(target = WriteToTrix, args = (d1, players, game_time, score_time_A, score_time_B))
+        t1.start()
+
         lcd.clear()
         lcd.message("Continue?\n*=yes #=no")
         sym = symbol()
