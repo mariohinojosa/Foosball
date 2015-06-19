@@ -1,4 +1,3 @@
-from Adafruit_7Segment import SevenSegment
 from Adafruit_CharLCD  import Adafruit_CharLCD
 from time import sleep, time
 import Adafruit_MCP230xx as Ada
@@ -8,6 +7,7 @@ import RPi.GPIO as GPIO
 import datetime
 import gspread
 import json
+from Adafruit_7Segment import SevenSegment
 from oauth2client.client import SignedJwtAssertionCredentials
 import matrix_kp
 import threading
@@ -258,13 +258,13 @@ def jugar():
     lcd.clear()
     lcd.message("How many players?\npress 2 or 4")
 
-    reject_num_players = true
+    reject_num_players = True
     while(reject_num_players):
         d1 = digit()
         lcd.clear()
         lcd.message("You pressed %d" % d1)
         if(d1 == 2 or d1 == 4):
-                reject_num_players = false
+                reject_num_players = False
         else:
                 sleep(1)
                 lcd.clear()
