@@ -9,14 +9,14 @@ def readNfc():
 
         (status,backData) = MIFAREReader.MFRC522_Anticoll()
         if status == MIFAREReader.MI_OK:
-            #print "Card detected"
+            print "Card detected"
             MIFAREReader.AntennaOff()
             reading=False
             return backData[0]
 
 
 print "Welcome to the MFRC522 data read example"
-
+print "Pass your card near the reader"
 id = readNfc()
-print "Card detected: " + id
+print "Card detected: " + str(id)
 
