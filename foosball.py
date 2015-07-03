@@ -369,7 +369,13 @@ def jugar():
         sleep(3)
 
         # Call WriteToTrix in a spearate Thread, beware to not turn off the Pi after finishing a game
-        t1 = threading.Thread(target = WriteToTrix, args = (d1, players, game_time, score_time_A, score_time_B))
+        # A copy of the arrays is made to avoid overwritting while thread is
+        # processing
+        players_copy = players[:]
+        score_time_A_copy = score_time_A[:]
+        score_time_B_copy = score_time_B[:]
+        t1 = threading.Thread(target = WriteToTrix, args = (d1, players_copy,
+                game_time, score_time_A_copy, score_time_B_copy))
         t1.start()
 
         lcd.clear()
