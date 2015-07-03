@@ -1,5 +1,3 @@
-from Adafruit_CharLCD  import Adafruit_CharLCD
-from time import sleep, time
 import Adafruit_MCP230xx as Ada
 import MFRC522
 # Basic integration of modules for football project
@@ -9,8 +7,10 @@ import gspread
 import json
 from Adafruit_7Segment import SevenSegment
 from oauth2client.client import SignedJwtAssertionCredentials
+from Adafruit_CharLCD  import Adafruit_CharLCD
 import matrix_kp
 import threading
+from time import sleep, time
 import signal
 import sys
 
@@ -153,6 +153,7 @@ def char_range(c1, c2):
 
 def WriteToTrix(num_players, players, total_time, score_A, score_B):
         global scores
+        scores_copy = scores[:]
 
         print 'Initiate write to trix'
         json_key = json.load(open('/home/pi/Documents/Foosballgit/Futbolin.json'))
@@ -219,15 +220,15 @@ def WriteToTrix(num_players, players, total_time, score_A, score_B):
         print 'after generate scores'
         aux_scores = 0
         for c in char_range('U', 'Z'):
-                if(len(scores) > aux_scores):
-                        sheet.update_acell(c + row_number, scores[aux_scores])
-                        print scores[aux_scores]
+                if(len(scores_copy) > aux_scores):
+                        sheet.update_acell(c + row_number, scores_copy[aux_scores])
+                        print scores_copy[aux_scores]
                 aux_scores += 1
 
         for c in char_range('A', 'C'):
-                if(len(scores) > aux_scores):
-                        sheet.update_acell('A'+c + row_number, scores[aux_scores])
-                        print scores[aux_scores]
+                if(len(scores_copy) > aux_scores):
+                        sheet.update_acell('A'+c + row_number, scores_copy[aux_scores])
+                        print scores_copy[aux_scores]
                 aux_scores += 1
 
         total_A = len(score_A) if score_A else 0
